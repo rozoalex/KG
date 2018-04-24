@@ -9,7 +9,7 @@ outpath = ''
 savepath = ''
 
 # if WHERE=='kaggle':
-	
+
 # elif WHERE=='gcloud':
 # 	inpath = '../.kaggle/competitions/talkingdata-adtracking-fraud-detection/'
 # 	suffix = '.zip'
@@ -18,14 +18,14 @@ savepath = ''
 
 import pandas as pd
 import time
-import numpy as np
-from sklearn.model_selection import train_test_split
+import numpy as np #numpy: a package for scientific computing
+from sklearn.model_selection import train_test_split #Split arrays or matrices into random train and test subsets
 import lightgbm as lgb
-import gc
-import matplotlib.pyplot as plt
+import gc #garbage collector interface
+import matplotlib.pyplot as plt #plotting
 import os
 
-# For Kaiyi 
+# For Kaiyi
 def do_count( df, group_cols, agg_name, agg_type='uint32', show_max=False, show_agg=True ):
     if show_agg:
         print( "Aggregating by ", group_cols , '...' )
@@ -49,7 +49,7 @@ def do_countuniq( df, group_cols, counted, agg_name, agg_type='uint32', show_max
     df[agg_name] = df[agg_name].astype(agg_type)
     gc.collect()
     return( df )
-    
+
 def do_cumcount( df, group_cols, counted, agg_name, agg_type='uint32', show_max=False, show_agg=True ):
     if show_agg:
         print( "Cumulative count by ", group_cols , '...' )
@@ -88,7 +88,7 @@ def do_var( df, group_cols, counted, agg_name, agg_type='float32', show_max=Fals
 # For Kaiyi
 
 
-debug=0 
+debug=0
 if debug:
     print('*** debug parameter set: this is a test run for debugging purposes ***')
 
@@ -133,14 +133,14 @@ def lgb_modelfit_nocv(params, dtrain, dvalid, predictors, target='target', objec
 
     evals_results = {}
 
-    bst1 = lgb.train(lgb_params, 
-                     xgtrain, 
-                     valid_sets=[xgtrain, xgvalid], 
-                     valid_names=['train','valid'], 
-                     evals_result=evals_results, 
+    bst1 = lgb.train(lgb_params,
+                     xgtrain,
+                     valid_sets=[xgtrain, xgvalid],
+                     valid_names=['train','valid'],
+                     evals_result=evals_results,
                      num_boost_round=num_boost_round,
                      early_stopping_rounds=early_stopping_rounds,
-                     verbose_eval=10, 
+                     verbose_eval=10,
                      feval=feval)
 
     print("\nModel Report")
@@ -148,7 +148,7 @@ def lgb_modelfit_nocv(params, dtrain, dvalid, predictors, target='target', objec
     print(metrics+":", evals_results['valid'][metrics][bst1.best_iteration-1])
 
     return (bst1,bst1.best_iteration)
-# For Chen Li 
+# For Chen Li
 
 
 
@@ -182,14 +182,14 @@ def DO(frm,to,fileno):
 
     len_train = len(train_df)
     train_df=train_df.append(test_df)
-    
+
     del test_df
     gc.collect()
-    
+
     print('Extracting new features...')
     train_df['hour'] = pd.to_datetime(train_df.click_time).dt.hour.astype('uint8')
     train_df['day'] = pd.to_datetime(train_df.click_time).dt.day.astype('uint8')
-    
+
     gc.collect()
     train_df = do_countuniq( train_df, ['ip'], 'channel', 'X0', 'uint8', show_max=True ); gc.collect()
     train_df = do_cumcount( train_df, ['ip', 'device', 'os'], 'app', 'X1', show_max=True ); gc.collect()
@@ -210,7 +210,7 @@ def DO(frm,to,fileno):
 
     print('doing nextClick')
     predictors=[]
-    
+
     new_feature = 'nextClick'
     filename='nextClick_%d_%d.csv'%(frm,to)
 
@@ -234,7 +234,7 @@ def DO(frm,to,fileno):
         if not debug:
             print('saving')
             pd.DataFrame(QQ).to_csv(filename,index=False)
-            
+
     train_df.drop(['epochtime','category','click_time'], axis=1, inplace=True)
 
     train_df[new_feature] = pd.Series(QQ).astype('float32')
@@ -242,7 +242,7 @@ def DO(frm,to,fileno):
 
     train_df[new_feature+'_shift'] = train_df[new_feature].shift(+1).values
     predictors.append(new_feature+'_shift')
-    
+
     del QQ
     gc.collect()
 
@@ -253,7 +253,7 @@ def DO(frm,to,fileno):
     train_df['ip_app_os_count'] = train_df['ip_app_os_count'].astype('uint16')
 
     target = 'is_attributed'
-    predictors.extend(['app','device','os', 'channel', 'hour', 'day', 
+    predictors.extend(['app','device','os', 'channel', 'hour', 'day',
                   'ip_tcount', 'ip_tchan_count', 'ip_app_count',
                   'ip_app_os_count', 'ip_app_os_var',
                   'ip_app_channel_var_day','ip_app_channel_mean_hour',
@@ -288,18 +288,18 @@ def DO(frm,to,fileno):
         'subsample_freq': 1,  # frequence of subsample, <=0 means no enable
         'colsample_bytree': 0.9,  # Subsample ratio of columns when constructing each tree.
         'min_child_weight': 0,  # Minimum sum of instance weight(hessian) needed in a child(leaf)
-        'scale_pos_weight':200 # because training data is extremely unbalanced 
+        'scale_pos_weight':200 # because training data is extremely unbalanced
     }
-    (bst,best_iteration) = lgb_modelfit_nocv(params, 
-                            train_df, 
-                            val_df, 
-                            predictors, 
-                            target, 
-                            objective='binary', 
+    (bst,best_iteration) = lgb_modelfit_nocv(params,
+                            train_df,
+                            val_df,
+                            predictors,
+                            target,
+                            objective='binary',
                             metrics='auc',
-                            early_stopping_rounds=30, 
-                            verbose_eval=True, 
-                            num_boost_round=1000, 
+                            early_stopping_rounds=30,
+                            verbose_eval=True,
+                            num_boost_round=1000,
                             categorical_features=categorical)
 
     print('[{}]: model training time'.format(time.time() - start_time))
@@ -319,7 +319,7 @@ def DO(frm,to,fileno):
         sub.to_csv('sub_it%d.csv'%(fileno),index=False,float_format='%.9f')
     print("done...")
     return sub
-# For Yuanze 
+# For Yuanze
 
 
 nrows=184903891-1
