@@ -96,15 +96,15 @@ if debug:
 def lgb_modelfit_nocv(params, dtrain, dvalid, predictors, target='target', objective='binary', metrics='auc',
                  feval=None, early_stopping_rounds=20, num_boost_round=3000, verbose_eval=10, categorical_features=None):
     lgb_params = {
-        'boosting_type': 'gbdt',
+        'boosting_type': 'gbdt', #traditional Gradient Boosting Decision Tree
         'objective': objective,
         'metric':metrics,
-        'learning_rate': 0.05,
+        'learning_rate': 0.05, # shrinkage rate
         #'is_unbalance': 'true',  #because training data is unbalance (replaced with scale_pos_weight)
         'num_leaves': 31,  # we should let it be smaller than 2^(max_depth)
         'max_depth': -1,  # -1 means no limit
         'min_child_samples': 20,  # Minimum number of data need in a child(min_data_in_leaf)
-        'max_bin': 255,  # Number of bucketed bin for feature values
+        'max_bin': 255,  # Number of bucketed bin for feature values  //Small number of bins may reduce training accuracy but may increase general power (deal with over-fitting)
         'subsample': 0.6,  # Subsample ratio of the training instance.
         'subsample_freq': 0,  # frequence of subsample, <=0 means no enable
         'colsample_bytree': 0.3,  # Subsample ratio of columns when constructing each tree.
@@ -132,22 +132,22 @@ def lgb_modelfit_nocv(params, dtrain, dvalid, predictors, target='target', objec
                           )
 
     evals_results = {}
-
+    #  bst1: booster – The trained Booster model.
     bst1 = lgb.train(lgb_params, 
                      xgtrain, 
                      valid_sets=[xgtrain, xgvalid], 
                      valid_names=['train','valid'], 
                      evals_result=evals_results, 
                      num_boost_round=num_boost_round,
-                     early_stopping_rounds=early_stopping_rounds,
-                     verbose_eval=10, 
+                     early_stopping_rounds=early_stopping_rounds, #Activates early stopping. The model will train until the validation score stops improving.
+                     verbose_eval=10,  #at least one item in evals, an evaluation metric is printed every 10 (instead of 1) boosting stages
                      feval=feval)
 
     print("\nModel Report")
-    print("bst1.best_iteration: ", bst1.best_iteration)
+    print("bst1.best_iteration: ", bst1.best_iteration) #  The best iteration of fitted model if early_stopping_rounds has been specified.
     print(metrics+":", evals_results['valid'][metrics][bst1.best_iteration-1])
 
-    return (bst1,bst1.best_iteration)
+    return (bst1,bst1.best_iteration)  
 # For Chen Li 
 
 
