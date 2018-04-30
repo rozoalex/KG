@@ -25,6 +25,23 @@ import gc
 import matplotlib.pyplot as plt
 import os
 
+### Global vars
+debug=1 
+nrows=184903891-1
+nchunk=25000000
+val_size=2500000
+
+frm=nrows-75000000
+if debug:
+    frm=0
+    nchunk=100000
+    val_size=10000
+to=frm+nchunk
+# directories
+test_filedir = os.getcwd() + "\\input\\test.csv"
+train_filedir = os.getcwd() + "\\input\\train.csv"
+### Global vars
+
 # For Kaiyi 
 def do_count( df, group_cols, agg_name, agg_type='uint32', show_max=False, show_agg=True ):
     if show_agg:
@@ -88,7 +105,7 @@ def do_var( df, group_cols, counted, agg_name, agg_type='float32', show_max=Fals
 # For Kaiyi
 
 
-debug=0 
+
 if debug:
     print('*** debug parameter set: this is a test run for debugging purposes ***')
 
@@ -133,6 +150,9 @@ def lgb_modelfit_nocv(params, dtrain, dvalid, predictors, target='target', objec
 
     evals_results = {}
 
+    print("lgb_params:")
+    print(lgb_params)
+
     bst1 = lgb.train(lgb_params, 
                      xgtrain, 
                      valid_sets=[xgtrain, xgvalid], 
@@ -162,26 +182,22 @@ def DO(frm,to,fileno):
             'channel'       : 'uint16',
             'is_attributed' : 'uint8',
             'click_id'      : 'uint32',
-            }
+            } # Define the data type of the data got loaded
+    test_usecols = ['ip','app','device','os', 'channel', 'click_time', 'click_id']
+    train_usecols = ['ip','app','device','os', 'channel', 'click_time', 'is_attributed']
 
+    print('loading training data...',frm,to)
+    train_df = pd.read_csv(train_filedir, parse_dates=['click_time'], skiprows=range(1,frm), nrows=to-frm, dtype=dtypes, usecols=train_usecols)
 
-    cwd = os.getcwd()
-
-    test_filedir = cwd + "\\input\\test.csv"
-
-    train_filedir = cwd + "\\input\\train.csv"
-
-    print('loading train data...',frm,to)
-    train_df = pd.read_csv(train_filedir, parse_dates=['click_time'], skiprows=range(1,frm), nrows=to-frm, dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'is_attributed'])
-
-    print('loading test data...')
+    print('loading testing data...')
     if debug:
-        test_df = pd.read_csv(test_filedir, nrows=100000, parse_dates=['click_time'], dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'click_id'])
+        test_df = pd.read_csv(test_filedir, nrows=100000, parse_dates=['click_time'], dtype=dtypes, usecols=test_usecols)
     else:
-        test_df = pd.read_csv(test_filedir, parse_dates=['click_time'], dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'click_id'])
+        test_df = pd.read_csv(test_filedir, parse_dates=['click_time'], dtype=dtypes, usecols=test_usecols)
 
     len_train = len(train_df)
     train_df=train_df.append(test_df)
+    # Train_df is a Panda dataframe
     
     del test_df
     gc.collect()
@@ -307,10 +323,9 @@ def DO(frm,to,fileno):
     del val_df
     gc.collect()
 
-    if WHERE!='gcloud':
-        print('Plot feature importances...')
-        ax = lgb.plot_importance(bst, max_num_features=100)
-        plt.show()
+    print('Plot feature importances...')
+    ax = lgb.plot_importance(bst, max_num_features=100)
+    plt.show()
 
     print("Predicting...")
     sub['is_attributed'] = bst.predict(test_df[predictors],num_iteration=best_iteration)
@@ -321,17 +336,5 @@ def DO(frm,to,fileno):
     return sub
 # For Yuanze 
 
-
-nrows=184903891-1
-nchunk=25000000
-val_size=2500000
-
-frm=nrows-75000000
-if debug:
-    frm=0
-    nchunk=100000
-    val_size=10000
-
-to=frm+nchunk
-
+# Run the main function 
 sub=DO(frm,to,0)
