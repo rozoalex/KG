@@ -1,3 +1,4 @@
+# For testing the dependency 
 import pandas as pd
 import time
 import numpy as np
@@ -12,6 +13,7 @@ print("import ready")
 cwd = os.getcwd()
 
 f = cwd + "\\input\\test.csv"
+# f = cwd + "/input/test.csv" # for UNIX
 
 print(f)
 
