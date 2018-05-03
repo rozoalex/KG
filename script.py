@@ -14,7 +14,7 @@ import lib.data_preprocessing as pp
 import lib.lightGBM_fitting as lgbmf
 
 ### Global vars
-debug=1
+debug=0
 nrows=184903891-1
 nchunk=25000000
 val_size=2500000
@@ -107,21 +107,8 @@ def DO(frm,to,fileno):
 
     print("Training...")
     start_time = time.time()
-
-    params = {
-        'learning_rate': 0.05,
-        #'is_unbalance': 'true', # replaced with scale_pos_weight argument
-        'num_leaves': 7,  # 2^max_depth - 1
-        'max_depth': 3,  # -1 means no limit
-        'min_child_samples': 100,  # Minimum number of data need in a child(min_data_in_leaf)
-        'max_bin': 100,  # Number of bucketed bin for feature values
-        'subsample': 0.7,  # Subsample ratio of the training instance.
-        'subsample_freq': 1,  # frequence of subsample, <=0 means no enable
-        'colsample_bytree': 0.9,  # Subsample ratio of columns when constructing each tree.
-        'min_child_weight': 0,  # Minimum sum of instance weight(hessian) needed in a child(leaf)
-        'scale_pos_weight':200 # because training data is extremely unbalanced 
-    }
-    (bst,best_iteration) = lgbmf.lgb_modelfit_nocv(params, 
+    
+    (bst,best_iteration) = lgbmf.lgb_modelfit_nocv( 
                             train_df, 
                             val_df, 
                             predictors, 
