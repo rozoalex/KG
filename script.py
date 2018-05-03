@@ -12,9 +12,10 @@ import matplotlib.pyplot as plt
 import os
 import lib.data_preprocessing as pp
 import lib.lightGBM_fitting as lgbmf
+from threading import Thread
 
 ### Global vars
-debug=1
+debug=0
 nrows=184903891-1
 nchunk=25000000
 val_size=2500000
@@ -145,9 +146,8 @@ def DO(frm,to,fileno):
     del val_df
     gc.collect()
 
-    print('Plot feature importances...')
-    ax = lgb.plot_importance(bst, max_num_features=100)
-    plt.show()
+
+    
 
     print("Predicting...")
     sub['is_attributed'] = bst.predict(test_df[predictors],num_iteration=best_iteration)
@@ -155,6 +155,12 @@ def DO(frm,to,fileno):
         print("writing...")
         sub.to_csv('prediction_%d.csv'%(fileno),index=False,float_format='%.9f')
     print("done...")
+
+    print('Plot feature importances...')
+
+    ax = lgb.plot_importance(bst, max_num_features=100)
+    plt.show()
+
     return sub
 # For Yuanze 
 
