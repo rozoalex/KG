@@ -15,7 +15,7 @@ import lib.lightGBM_fitting as lgbmf
 from threading import Thread
 
 ### Global vars
-debug=0
+debug=1
 nrows=184903891-1
 nchunk=25000000
 val_size=2500000
