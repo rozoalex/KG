@@ -70,34 +70,75 @@ def do_var( df, group_cols, counted, agg_name, agg_type='float32', show_max=Fals
 def do_preprocessing(train_df):
     print('start pre-processing: ')
     train_df.info()
-    train_df = do_countuniq( train_df, ['ip'], 'channel', 'X0', 'uint8', show_max=True ); gc.collect()
-    train_df = do_cumcount( train_df, ['ip', 'device', 'os'], 'app', 'X1', show_max=True ); gc.collect()
-    train_df = do_countuniq( train_df, ['ip', 'day'], 'hour', 'X2', 'uint8', show_max=True ); gc.collect()
-    train_df = do_countuniq( train_df, ['ip'], 'app', 'X3', 'uint8', show_max=True ); gc.collect()
-    train_df = do_countuniq( train_df, ['ip', 'app'], 'os', 'X4', 'uint8', show_max=True ); gc.collect()
-    train_df = do_countuniq( train_df, ['ip'], 'device', 'X5', 'uint16', show_max=True ); gc.collect()
-    train_df = do_countuniq( train_df, ['app'], 'channel', 'X6', show_max=True ); gc.collect()
-    train_df = do_cumcount( train_df, ['ip'], 'os', 'X7', show_max=True ); gc.collect()
-    train_df = do_countuniq( train_df, ['ip', 'device', 'os'], 'app', 'X8', show_max=True ); gc.collect()
-    train_df = do_countuniq( train_df, ['app', 'os'], 'channel', 'XX1', show_max=True ); gc.collect()
+    train_df = do_countuniq( train_df, ['ip'], 'channel', 'ip_channel_countuniq', 'uint8', show_max=True ); gc.collect()
+    train_df = do_cumcount( train_df, ['ip', 'device', 'os'], 'app', 'ip_dev_os_app_cumcount', show_max=True ); gc.collect()
+    train_df = do_countuniq( train_df, ['ip', 'day'], 'hour', 'ip_day_hour_countuniq', 'uint8', show_max=True ); gc.collect()
+    train_df = do_countuniq( train_df, ['ip'], 'app', 'ip_app_countuniq', 'uint8', show_max=True ); gc.collect()
+    train_df = do_countuniq( train_df, ['ip', 'app'], 'os', 'ip_app_os_countuniq', 'uint8', show_max=True ); gc.collect()
+    train_df = do_countuniq( train_df, ['ip'], 'device', 'ip_dev_countniq', 'uint16', show_max=True ); gc.collect()
+    train_df = do_countuniq( train_df, ['app'], 'channel', 'app_channel_countuniq', show_max=True ); gc.collect()
+    train_df = do_cumcount( train_df, ['ip'], 'os', 'ip_os_count', show_max=True ); gc.collect()
+    train_df = do_countuniq( train_df, ['ip', 'device', 'os'], 'app', 'ip_dev_os_countuniq', show_max=True ); gc.collect()
+    train_df = do_countuniq( train_df, ['app', 'os'], 'channel', 'app_os_channel_countuniq', show_max=True ); gc.collect()
     train_df = do_count( train_df, ['ip', 'day', 'hour'], 'ip_tcount', show_max=True ); gc.collect()
     train_df = do_count( train_df, ['ip', 'app'], 'ip_app_count', show_max=True ); gc.collect()
     train_df = do_count( train_df, ['ip', 'app', 'os'], 'ip_app_os_count', 'uint16', show_max=True ); gc.collect()
     train_df = do_var( train_df, ['ip', 'day', 'channel'], 'hour', 'ip_tchan_count', show_max=True ); gc.collect()
     train_df = do_var( train_df, ['ip', 'app', 'os'], 'hour', 'ip_app_os_var', show_max=True ); gc.collect()
     train_df = do_var( train_df, ['ip', 'app', 'channel'], 'day', 'ip_app_channel_var_day', show_max=True ); gc.collect()
-    train_df = do_var( train_df, ['ip', 'app'], 'channel', 'XX0', show_max=True ); gc.collect()
-    train_df = do_var( train_df, ['app', 'os'], 'channel', 'XX2', show_max=True ); gc.collect()
-    # train_df = do_var( train_df, ['app', 'os'], 'wday', 'XX3', show_max=True ); gc.collect()
+    train_df = do_var( train_df, ['ip', 'app'], 'channel', 'ip_app_channel_var', show_max=True ); gc.collect()
+    train_df = do_var( train_df, ['app', 'os'], 'channel', 'app_os_channel_var', show_max=True ); gc.collect()
+    train_df = do_var( train_df, ['app', 'os'], 'wday', 'app_os_wday_var', show_max=True ); gc.collect()
     train_df = do_mean( train_df, ['ip', 'app', 'channel'], 'hour', 'ip_app_channel_mean_hour', show_max=True ); gc.collect()
     print('done pre-processing: ')
     train_df.info()
     gc.collect()
     return train_df
 
-def do_generating_nextClick(train_df, frm, to, debug):
+def do_prev_Click(df, predictors):
+
+    agg_suffix='prevClick'
+
+    agg_type='float32'
+
+    print("Extracting {agg_suffix} time calculation features...\n")
+    
+    GROUP_BY_NEXT_CLICKS = [
+    
+    # V1
+    # {'groupby': ['ip']},
+    # {'groupby': ['ip', 'app']},
+    {'groupby': ['ip', 'channel']},
+    # {'groupby': ['ip', 'os']},
+    
+    # V3
+    #{'groupby': ['ip', 'app', 'device', 'os', 'channel']},
+    #{'groupby': ['ip', 'os', 'device']},
+    #{'groupby': ['ip', 'os', 'device', 'app']}
+    ]
+
+    # Calculate the time to next click for each group
+    for spec in GROUP_BY_NEXT_CLICKS:
+    
+       # Name of new feature
+        new_feature = '{}_{}'.format('_'.join(spec['groupby']),agg_suffix)    
+    
+        # Unique list of features to select
+        all_features = spec['groupby'] + ['click_time']
+
+        # Run calculation
+        print(f">> Grouping by {spec['groupby']}, and saving time to {agg_suffix} in: {new_feature}")
+        df[new_feature] = (df.click_time - df[all_features].groupby(spec[
+                'groupby']).click_time.shift(+1) ).dt.seconds.astype(agg_type)
+        
+        predictors.append(new_feature)
+        gc.collect()
+    return df, predictors 
+
+
+def do_generating_nextClick(train_df, frm, to, debug, predictors):
     print('doing nextClick')
-    predictors=[]
+    
     
     new_feature = 'nextClick'
     filename='nextClick_%d_%d.csv'%(frm,to)

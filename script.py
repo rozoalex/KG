@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import os
 import lib.data_preprocessing as pp
 import lib.lightGBM_fitting as lgbmf
+from threading import Thread
 
 ### Global vars
 debug=0
@@ -74,7 +75,10 @@ def DO(frm,to,fileno):
 
     train_df = pp.do_preprocessing(train_df)
 
-    train_df, predictors = pp.do_generating_nextClick(train_df, frm, to, debug)
+    train_df, predictors = pp.do_prev_Click(train_df, predictors=[])
+
+    train_df, predictors = pp.do_generating_nextClick(train_df, frm, to, debug, predictors)
+
 
     print("vars and data type: ")
     train_df.info()
@@ -87,7 +91,11 @@ def DO(frm,to,fileno):
                   'ip_tcount', 'ip_tchan_count', 'ip_app_count',
                   'ip_app_os_count', 'ip_app_os_var',
                   'ip_app_channel_var_day','ip_app_channel_mean_hour',
-                  'X0','X1', 'X2', 'X3', 'X4', 'X5', 'X6', 'X7', 'X8', 'XX0', 'XX1','XX2'])
+                  'ip_channel_countuniq','ip_dev_os_app_cumcount', 
+                  'ip_day_hour_countuniq', 'ip_app_countuniq', 'ip_app_os_countuniq', 
+                  'ip_dev_countniq', 'app_channel_countuniq', 'ip_os_count', 
+                  'ip_dev_os_countuniq', 'ip_app_channel_var', 'app_os_channel_countuniq',
+                  'app_os_channel_var','app_os_wday_var'])
     categorical = ['app', 'device', 'os', 'channel', 'hour', 'day']
     print('predictors',predictors)
     # 'X1', 
@@ -125,9 +133,8 @@ def DO(frm,to,fileno):
     del val_df
     gc.collect()
 
-    print('Plot feature importances...')
-    ax = lgb.plot_importance(bst, max_num_features=100)
-    plt.show()
+
+    
 
     print("Predicting...")
     sub['is_attributed'] = bst.predict(test_df[predictors],num_iteration=best_iteration)
@@ -135,6 +142,12 @@ def DO(frm,to,fileno):
         print("writing...")
         sub.to_csv('prediction_%d.csv'%(fileno),index=False,float_format='%.9f')
     print("done...")
+
+    print('Plot feature importances...')
+
+    ax = lgb.plot_importance(bst, max_num_features=100)
+    plt.show()
+
     return sub
 # For Yuanze 
 
