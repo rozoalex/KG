@@ -1,11 +1,10 @@
-
 import gc
 import os
 import numpy as np
 import pandas as pd
 
 # For Kaiyi 
-def do_count( df, group_cols, agg_name, agg_type='uint32', show_max=False, show_agg=True ):
+def do_count( df, group_cols, agg_name, agg_type='uint32', show_max=True, show_agg=True ):
     if show_agg:
         print( "Aggregating by ", group_cols , '...' )
     gp = df[group_cols][group_cols].groupby(group_cols).size().rename(agg_name).to_frame().reset_index()
@@ -17,7 +16,7 @@ def do_count( df, group_cols, agg_name, agg_type='uint32', show_max=False, show_
     gc.collect()
     return( df )
 
-def do_countuniq( df, group_cols, counted, agg_name, agg_type='uint32', show_max=False, show_agg=True ):
+def do_countuniq( df, group_cols, counted, agg_name, agg_type='uint32', show_max=True, show_agg=True ):
     if show_agg:
         print( "Counting unqiue ", counted, " by ", group_cols , '...' )
     gp = df[group_cols+[counted]].groupby(group_cols)[counted].nunique().reset_index().rename(columns={counted:agg_name})
@@ -29,7 +28,7 @@ def do_countuniq( df, group_cols, counted, agg_name, agg_type='uint32', show_max
     gc.collect()
     return( df )
     
-def do_cumcount( df, group_cols, counted, agg_name, agg_type='uint32', show_max=False, show_agg=True ):
+def do_cumcount( df, group_cols, counted, agg_name, agg_type='uint32', show_max=True, show_agg=True ):
     if show_agg:
         print( "Cumulative count by ", group_cols , '...' )
     gp = df[group_cols+[counted]].groupby(group_cols)[counted].cumcount()
@@ -41,7 +40,7 @@ def do_cumcount( df, group_cols, counted, agg_name, agg_type='uint32', show_max=
     gc.collect()
     return( df )
 
-def do_mean( df, group_cols, counted, agg_name, agg_type='float32', show_max=False, show_agg=True ):
+def do_mean( df, group_cols, counted, agg_name, agg_type='float32', show_max=True, show_agg=True ):
     if show_agg:
         print( "Calculating mean of ", counted, " by ", group_cols , '...' )
     gp = df[group_cols+[counted]].groupby(group_cols)[counted].mean().reset_index().rename(columns={counted:agg_name})
@@ -53,7 +52,7 @@ def do_mean( df, group_cols, counted, agg_name, agg_type='float32', show_max=Fal
     gc.collect()
     return( df )
 
-def do_var( df, group_cols, counted, agg_name, agg_type='float32', show_max=False, show_agg=True ):
+def do_var( df, group_cols, counted, agg_name, agg_type='float32', show_max=True, show_agg=True ):
     if show_agg:
         print( "Calculating variance of ", counted, " by ", group_cols , '...' )
     gp = df[group_cols+[counted]].groupby(group_cols)[counted].var().reset_index().rename(columns={counted:agg_name})
@@ -66,36 +65,7 @@ def do_var( df, group_cols, counted, agg_name, agg_type='float32', show_max=Fals
     return( df )
 # For Kaiyi
 
-# do_preprocessing will process the pd.dataframe provide
-def do_preprocessing(train_df):
-    print('start pre-processing: ')
-    train_df.info()
-    train_df = do_countuniq( train_df, ['ip'], 'channel', 'ip_channel_countuniq', 'uint8', show_max=True ); gc.collect()
-    train_df = do_cumcount( train_df, ['ip', 'device', 'os'], 'app', 'ip_dev_os_app_cumcount', show_max=True ); gc.collect()
-    train_df = do_countuniq( train_df, ['ip', 'day'], 'hour', 'ip_day_hour_countuniq', 'uint8', show_max=True ); gc.collect()
-    train_df = do_countuniq( train_df, ['ip'], 'app', 'ip_app_countuniq', 'uint8', show_max=True ); gc.collect()
-    train_df = do_countuniq( train_df, ['ip', 'app'], 'os', 'ip_app_os_countuniq', 'uint8', show_max=True ); gc.collect()
-    train_df = do_countuniq( train_df, ['ip'], 'device', 'ip_dev_countniq', 'uint16', show_max=True ); gc.collect()
-    train_df = do_countuniq( train_df, ['app'], 'channel', 'app_channel_countuniq', show_max=True ); gc.collect()
-    train_df = do_cumcount( train_df, ['ip'], 'os', 'ip_os_count', show_max=True ); gc.collect()
-    train_df = do_countuniq( train_df, ['ip', 'device', 'os'], 'app', 'ip_dev_os_countuniq', show_max=True ); gc.collect()
-    train_df = do_countuniq( train_df, ['app', 'os'], 'channel', 'app_os_channel_countuniq', show_max=True ); gc.collect()
-    train_df = do_count( train_df, ['ip', 'day', 'hour'], 'ip_tcount', show_max=True ); gc.collect()
-    train_df = do_count( train_df, ['ip', 'app'], 'ip_app_count', show_max=True ); gc.collect()
-    train_df = do_count( train_df, ['ip', 'app', 'os'], 'ip_app_os_count', 'uint16', show_max=True ); gc.collect()
-    train_df = do_var( train_df, ['ip', 'day', 'channel'], 'hour', 'ip_tchan_count', show_max=True ); gc.collect()
-    train_df = do_var( train_df, ['ip', 'app', 'os'], 'hour', 'ip_app_os_var', show_max=True ); gc.collect()
-    train_df = do_var( train_df, ['ip', 'app', 'channel'], 'day', 'ip_app_channel_var_day', show_max=True ); gc.collect()
-    train_df = do_var( train_df, ['ip', 'app'], 'channel', 'ip_app_channel_var', show_max=True ); gc.collect()
-    train_df = do_var( train_df, ['app', 'os'], 'channel', 'app_os_channel_var', show_max=True ); gc.collect()
-    train_df = do_var( train_df, ['app', 'os'], 'wday', 'app_os_wday_var', show_max=True ); gc.collect()
-    train_df = do_mean( train_df, ['ip', 'app', 'channel'], 'hour', 'ip_app_channel_mean_hour', show_max=True ); gc.collect()
-    print('done pre-processing: ')
-    train_df.info()
-    gc.collect()
-    return train_df
-
-def do_prev_Click(df, predictors):
+def do_prev_Click(df, predictors, agg_suffix='prevClick', agg_type='float32'):
 
     agg_suffix='prevClick'
 
@@ -104,14 +74,8 @@ def do_prev_Click(df, predictors):
     print("Extracting {agg_suffix} time calculation features...\n")
     
     GROUP_BY_NEXT_CLICKS = [
-    
-    # V1
-    # {'groupby': ['ip']},
-    # {'groupby': ['ip', 'app']},
     {'groupby': ['ip', 'channel']},
-    # {'groupby': ['ip', 'os']},
     
-    # V3
     #{'groupby': ['ip', 'app', 'device', 'os', 'channel']},
     #{'groupby': ['ip', 'os', 'device']},
     #{'groupby': ['ip', 'os', 'device', 'app']}
@@ -136,9 +100,48 @@ def do_prev_Click(df, predictors):
     return df, predictors 
 
 
+def do_next_Click( df, predictors, agg_suffix='nextClick', agg_type='float32'):
+    
+    print(f">> \nExtracting {agg_suffix} time calculation features...\n")
+    
+    GROUP_BY_NEXT_CLICKS = [
+    
+    # V1
+    # {'groupby': ['ip']},
+    # {'groupby': ['ip', 'app']},
+    # {'groupby': ['ip', 'channel']},
+    # {'groupby': ['ip', 'os']},
+    
+    # V3
+    {'groupby': ['ip', 'app', 'device', 'os', 'channel']},
+    {'groupby': ['ip', 'os', 'device']},
+    {'groupby': ['ip', 'os', 'device', 'app']},
+    {'groupby': ['device']},
+    {'groupby': ['device', 'channel']},     
+    {'groupby': ['app', 'device', 'channel']},
+    {'groupby': ['device', 'hour']}
+    ]
+
+    # Calculate the time to next click for each group
+    for spec in GROUP_BY_NEXT_CLICKS:
+    
+       # Name of new feature
+        new_feature = '{}_{}'.format('_'.join(spec['groupby']),agg_suffix)    
+    
+        # Unique list of features to select
+        all_features = spec['groupby'] + ['click_time']
+
+        # Run calculation
+        print(f">> Grouping by {spec['groupby']}, and saving time to {agg_suffix} in: {new_feature}")
+        df[new_feature] = (df[all_features].groupby(spec[
+            'groupby']).click_time.shift(-1) - df.click_time).dt.seconds.astype(agg_type)
+        
+        predictors.append(new_feature)
+        gc.collect()
+    return df, predictors 
+
 def do_generating_nextClick(train_df, frm, to, debug, predictors):
     print('doing nextClick')
-    
     
     new_feature = 'nextClick'
     filename='nextClick_%d_%d.csv'%(frm,to)
@@ -173,5 +176,45 @@ def do_generating_nextClick(train_df, frm, to, debug, predictors):
     predictors.append(new_feature+'_shift')
     
     del next_clicks
+    gc.collect()
+    return train_df, predictors
+
+# do_preprocessing will process the pd.dataframe provide
+def do_preprocessing(train_df, frm, to, debug, predictors):
+    print('start pre-processing: ')
+    train_df.info()
+    print('Extracting new features...')
+    train_df['hour'] = pd.to_datetime(train_df.click_time).dt.hour.astype('uint8')
+    train_df['day'] = pd.to_datetime(train_df.click_time).dt.day.astype('uint8')
+    train_df['wday'] = pd.to_datetime(train_df.click_time).dt.dayofweek.astype('uint8') # Which day of the week
+    train_df = do_countuniq( train_df, ['ip'], 'channel', 'ip_channel_countuniq', 'uint8'); gc.collect()
+    train_df = do_cumcount( train_df, ['ip', 'device', 'os'], 'app', 'ip_dev_os_app_cumcount'); gc.collect()
+    train_df = do_countuniq( train_df, ['ip', 'day'], 'hour', 'ip_day_hour_countuniq', 'uint8'); gc.collect()
+    train_df = do_countuniq( train_df, ['ip'], 'app', 'ip_app_countuniq', 'uint8'); gc.collect()
+    train_df = do_countuniq( train_df, ['ip', 'app'], 'os', 'ip_app_os_countuniq', 'uint8'); gc.collect()
+    train_df = do_countuniq( train_df, ['ip'], 'device', 'ip_dev_countniq', 'uint16'); gc.collect()
+    train_df = do_countuniq( train_df, ['app'], 'channel', 'app_channel_countuniq'); gc.collect()
+    train_df = do_cumcount( train_df, ['ip'], 'os', 'ip_os_count'); gc.collect()
+    train_df = do_countuniq( train_df, ['ip', 'device', 'os'], 'app', 'ip_dev_os_countuniq'); gc.collect()
+    train_df = do_countuniq( train_df, ['app', 'os'], 'channel', 'app_os_channel_countuniq'); gc.collect()
+    train_df = do_count( train_df, ['ip', 'day', 'hour'], 'ip_tcount'); gc.collect()
+    train_df = do_count( train_df, ['ip', 'app'], 'ip_app_count'); gc.collect()
+    train_df = do_count( train_df, ['ip', 'app', 'os'], 'ip_app_os_count', 'uint16'); gc.collect()
+    train_df = do_var( train_df, ['ip', 'day', 'channel'], 'hour', 'ip_tchan_count'); gc.collect()
+    train_df = do_var( train_df, ['ip', 'app', 'os'], 'hour', 'ip_app_os_var'); gc.collect()
+    train_df = do_var( train_df, ['ip', 'app', 'channel'], 'day', 'ip_app_channel_var_day'); gc.collect()
+    train_df = do_var( train_df, ['ip', 'app'], 'channel', 'ip_app_channel_var'); gc.collect()
+    train_df = do_var( train_df, ['app', 'os'], 'channel', 'app_os_channel_var'); gc.collect()
+    train_df = do_var( train_df, ['app', 'os'], 'wday', 'app_os_wday_var'); gc.collect()
+    train_df = do_mean( train_df, ['ip', 'app', 'channel'], 'hour', 'ip_app_channel_mean_hour'); gc.collect()
+    train_df, predictors = do_prev_Click(train_df, predictors)
+    train_df, predictors = do_next_Click(train_df, predictors)
+    train_df, predictors = do_generating_nextClick(train_df, frm, to, debug, predictors)
+    print('done pre-processing: ')
+    # change data types of column
+    train_df['ip_tcount'] = train_df['ip_tcount'].astype('uint16')
+    train_df['ip_app_count'] = train_df['ip_app_count'].astype('uint16')
+    train_df['ip_app_os_count'] = train_df['ip_app_os_count'].astype('uint16')
+    train_df.info()
     gc.collect()
     return train_df, predictors

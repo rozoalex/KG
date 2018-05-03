@@ -15,7 +15,7 @@ import lib.lightGBM_fitting as lgbmf
 from threading import Thread
 
 ### Global vars
-debug=1
+debug=0
 nrows=184903891-1
 nchunk=25000000
 val_size=2500000
@@ -64,27 +64,10 @@ def DO(frm,to,fileno):
     # Train_df is a Panda dataframe
     
     del test_df
-    gc.collect()
-    
-    print('Extracting new features...')
-    train_df['hour'] = pd.to_datetime(train_df.click_time).dt.hour.astype('uint8')
-    train_df['day'] = pd.to_datetime(train_df.click_time).dt.day.astype('uint8')
-    train_df['wday'] = pd.to_datetime(train_df.click_time).dt.dayofweek.astype('uint8') # Which day of the week
     
     gc.collect()
 
-    train_df = pp.do_preprocessing(train_df)
-
-    train_df, predictors = pp.do_prev_Click(train_df, predictors=[])
-
-    train_df, predictors = pp.do_generating_nextClick(train_df, frm, to, debug, predictors)
-
-
-    print("vars and data type: ")
-    train_df.info()
-    train_df['ip_tcount'] = train_df['ip_tcount'].astype('uint16')
-    train_df['ip_app_count'] = train_df['ip_app_count'].astype('uint16')
-    train_df['ip_app_os_count'] = train_df['ip_app_os_count'].astype('uint16')
+    train_df, predictors = pp.do_preprocessing(train_df,frm,to, debug, predictors=[])
 
     target = 'is_attributed'
     predictors.extend(['app','device','os', 'channel', 'hour', 'day', 
@@ -97,8 +80,7 @@ def DO(frm,to,fileno):
                   'ip_dev_os_countuniq', 'ip_app_channel_var', 'app_os_channel_countuniq',
                   'app_os_channel_var','app_os_wday_var'])
     categorical = ['app', 'device', 'os', 'channel', 'hour', 'day']
-    print('predictors',predictors)
-    # 'X1', 
+    print('predictors',predictors) 
 
     test_df = train_df[len_train:]
     val_df = train_df[(len_train-val_size):len_train]

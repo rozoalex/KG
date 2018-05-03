@@ -8,7 +8,7 @@ def lgb_modelfit_nocv(dtrain, dvalid, predictors, target='target', objective='bi
                  feval=None, early_stopping_rounds=20, num_boost_round=3000, verbose_eval=10, categorical_features=None):
 
     lgb_params = {
-        'boosting_type': 'gbdt',
+        'boosting_type': 'gbdt', # gbdt, goss, 
         'objective': objective,
         'metric':metrics,
         'learning_rate': 0.15, # 0.05
@@ -27,7 +27,6 @@ def lgb_modelfit_nocv(dtrain, dvalid, predictors, target='target', objective='bi
         'reg_lambda': 0,  # L2 regularization term on weights
         'nthread': 8, # Changed from 4 to 8 
         'verbose': 0,
-        'metric':metrics,
         'scale_pos_weight': 200
     }
 
