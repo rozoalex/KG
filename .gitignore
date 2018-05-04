@@ -5,3 +5,6 @@ sub_it0.csv
 .vscode/
 __pycache__/
 prediction_0.csv
+.DS_Store
+__init__.py
+*.pyc

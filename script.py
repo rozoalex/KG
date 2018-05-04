@@ -27,10 +27,10 @@ if debug:
     val_size=10000
 to=frm+nchunk
 # directories
-test_filedir = os.getcwd() + "\\input\\test.csv"
-# test_filedir = os.getcwd() + "/input/test.csv" # For UNIX
-train_filedir = os.getcwd() + "\\input\\train.csv"
-# train_filedir = os.getcwd() + "/input/train.csv" # For UNIX
+# test_filedir = os.getcwd() + "\\input\\test.csv"
+test_filedir = os.getcwd() + "/input/test.csv" # For UNIX
+# train_filedir = os.getcwd() + "\\input\\train.csv"
+train_filedir = os.getcwd() + "/input/train.csv" # For UNIX
 ### Global vars
 
 if debug:
