@@ -200,10 +200,15 @@ def do_preprocessing(train_df, frm, to, debug, predictors):
     train_df = do_count( train_df, ['ip', 'day', 'hour'], 'ip_tcount'); gc.collect()
     train_df = do_count( train_df, ['ip', 'app'], 'ip_app_count'); gc.collect()
     train_df = do_count( train_df, ['ip', 'app', 'os'], 'ip_app_os_count', 'uint16'); gc.collect()
-    train_df = do_var( train_df, ['ip', 'day', 'channel'], 'hour', 'ip_tchan_count'); gc.collect()
+    train_df = do_count( train_df, ['ip', 'wday', 'hour'], 'ip_wday_hour_count'); gc.collect()
+    train_df = do_count( train_df, ['ip', 'device', 'wday', 'hour'], 'ip_dev_wday_hour_count'); gc.collect()
+    train_df = do_count( train_df, ['app', 'hour', 'wday'], 'app_hour_wday_count'); gc.collect()
+    # train_df = do_var( train_df, ['ip', 'day', 'channel'], 'hour', 'ip_tchan_count'); gc.collect()
+    # train_df = do_var( train_df, ['ip', 'app', 'channel'], 'day', 'ip_app_channel_var_day'); gc.collect()
+    # train_df = do_var( train_df, ['ip', 'app'], 'channel', 'ip_app_channel_var'); gc.collect()
+    
+
     train_df = do_var( train_df, ['ip', 'app', 'os'], 'hour', 'ip_app_os_var'); gc.collect()
-    train_df = do_var( train_df, ['ip', 'app', 'channel'], 'day', 'ip_app_channel_var_day'); gc.collect()
-    train_df = do_var( train_df, ['ip', 'app'], 'channel', 'ip_app_channel_var'); gc.collect()
     train_df = do_var( train_df, ['app', 'os'], 'channel', 'app_os_channel_var'); gc.collect()
     train_df = do_var( train_df, ['app', 'os'], 'wday', 'app_os_wday_var'); gc.collect()
     train_df = do_mean( train_df, ['ip', 'app', 'channel'], 'hour', 'ip_app_channel_mean_hour'); gc.collect()

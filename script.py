@@ -27,10 +27,10 @@ if debug:
     val_size=10000
 to=frm+nchunk
 # directories
-# test_filedir = os.getcwd() + "\\input\\test.csv"
-test_filedir = os.getcwd() + "/input/test.csv" # For UNIX
-# train_filedir = os.getcwd() + "\\input\\train.csv"
-train_filedir = os.getcwd() + "/input/train.csv" # For UNIX
+test_filedir = os.getcwd() + "\\input\\test.csv"
+# test_filedir = os.getcwd() + "/input/test.csv" # For UNIX
+train_filedir = os.getcwd() + "\\input\\train.csv"
+# train_filedir = os.getcwd() + "/input/train.csv" # For UNIX
 ### Global vars
 
 if debug:
@@ -71,14 +71,15 @@ def DO(frm,to,fileno):
 
     target = 'is_attributed'
     predictors.extend(['app','device','os', 'channel', 'hour', 'day', 
-                  'ip_tcount', 'ip_tchan_count', 'ip_app_count',
+                  'ip_tcount', 'ip_app_count',
                   'ip_app_os_count', 'ip_app_os_var',
-                  'ip_app_channel_var_day','ip_app_channel_mean_hour',
+                  'ip_app_channel_mean_hour','app_os_wday_var',
                   'ip_channel_countuniq','ip_dev_os_app_cumcount', 
                   'ip_day_hour_countuniq', 'ip_app_countuniq', 'ip_app_os_countuniq', 
                   'ip_dev_countniq', 'app_channel_countuniq', 'ip_os_count', 
-                  'ip_dev_os_countuniq', 'ip_app_channel_var', 'app_os_channel_countuniq',
-                  'app_os_channel_var','app_os_wday_var'])
+                  'ip_dev_os_countuniq', 'app_os_channel_countuniq',
+                  'app_os_channel_var','ip_wday_hour_count', 'app_hour_wday_count',
+                  'ip_wday_hour_count','ip_dev_wday_hour_count'])
     categorical = ['app', 'device', 'os', 'channel', 'hour', 'day']
     print('predictors',predictors) 
 
