@@ -188,13 +188,14 @@ def do_preprocessing(train_df, frm, to, debug, predictors):
     train_df['day'] = pd.to_datetime(train_df.click_time).dt.day.astype('uint8')
     train_df['wday'] = pd.to_datetime(train_df.click_time).dt.dayofweek.astype('uint8') # Which day of the week
     train_df = do_countuniq( train_df, ['ip'], 'channel', 'ip_channel_countuniq', 'uint8'); gc.collect()
-    train_df = do_cumcount( train_df, ['ip', 'device', 'os'], 'app', 'ip_dev_os_app_cumcount'); gc.collect()
+    train_df = do_countuniq( train_df, ['ip', 'device', 'os'], 'app', 'ip_dev_os_app_countuniq'); gc.collect()
     train_df = do_countuniq( train_df, ['ip', 'day'], 'hour', 'ip_day_hour_countuniq', 'uint8'); gc.collect()
     train_df = do_countuniq( train_df, ['ip'], 'app', 'ip_app_countuniq', 'uint8'); gc.collect()
     train_df = do_countuniq( train_df, ['ip', 'app'], 'os', 'ip_app_os_countuniq', 'uint8'); gc.collect()
     train_df = do_countuniq( train_df, ['ip'], 'device', 'ip_dev_countniq', 'uint16'); gc.collect()
     train_df = do_countuniq( train_df, ['app'], 'channel', 'app_channel_countuniq'); gc.collect()
     train_df = do_cumcount( train_df, ['ip'], 'os', 'ip_os_count'); gc.collect()
+    train_df = do_cumcount( train_df, ['ip','device','os'], 'app', 'ip_dev_os_app_count'); gc.collect()
     train_df = do_countuniq( train_df, ['ip', 'device', 'os'], 'app', 'ip_dev_os_countuniq'); gc.collect()
     train_df = do_countuniq( train_df, ['app', 'os'], 'channel', 'app_os_channel_countuniq'); gc.collect()
     train_df = do_count( train_df, ['ip', 'day', 'hour'], 'ip_tcount'); gc.collect()
@@ -207,6 +208,7 @@ def do_preprocessing(train_df, frm, to, debug, predictors):
     train_df = do_var( train_df, ['app', 'os'], 'channel', 'app_os_channel_var'); gc.collect()
     train_df = do_var( train_df, ['app', 'os'], 'wday', 'app_os_wday_var'); gc.collect()
     train_df = do_mean( train_df, ['ip', 'app', 'channel'], 'hour', 'ip_app_channel_mean_hour'); gc.collect()
+
     train_df, predictors = do_prev_Click(train_df, predictors)
     train_df, predictors = do_next_Click(train_df, predictors)
     train_df, predictors = do_generating_nextClick(train_df, frm, to, debug, predictors)
